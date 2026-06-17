@@ -1,21 +1,48 @@
 "use strict";
 
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3000;
 const ROOM_CODE_LENGTH = 4;
 const rooms = new Map();
+const publicFiles = new Map([
+  ["/", { filePath: path.join(__dirname, "index.html"), contentType: "text/html; charset=utf-8" }],
+  ["/index.html", { filePath: path.join(__dirname, "index.html"), contentType: "text/html; charset=utf-8" }]
+]);
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/health") {
+  const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+  if (requestUrl.pathname === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ ok: true }));
     return;
   }
 
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Game Orchestrator is running.\n");
+  const publicFile = publicFiles.get(requestUrl.pathname);
+
+  if (!publicFile) {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: false, error: "NOT_FOUND" }));
+    return;
+  }
+
+  fs.readFile(publicFile.filePath, (error, fileContent) => {
+    if (error) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "INDEX_NOT_AVAILABLE" }));
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": publicFile.contentType,
+      "Cache-Control": "no-cache"
+    });
+    res.end(fileContent);
+  });
 });
 
 const io = new Server(server, {
