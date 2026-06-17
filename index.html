@@ -8,7 +8,7 @@
     :root {
       color-scheme: dark;
       --bg: #101419;
-      --panel: rgba(18, 24, 31, 0.88);
+      --panel: rgba(18, 24, 31, 0.86);
       --panel-border: rgba(255, 255, 255, 0.14);
       --text: #f3f7fb;
       --muted: #a8b5c2;
@@ -85,7 +85,7 @@
     .lobby {
       position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: 30;
       display: grid;
       place-items: center;
       padding: 24px;
@@ -211,7 +211,7 @@
     .crosshair::after {
       content: "";
       position: absolute;
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.8);
     }
 
     .crosshair::before {
@@ -232,10 +232,50 @@
       display: block;
     }
 
+    .center-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 24;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.62);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .center-overlay.is-visible {
+      display: grid;
+    }
+
+    .role-card {
+      width: min(520px, 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 26px;
+      background: rgba(18, 24, 31, 0.9);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(16px);
+    }
+
+    .role-card h2 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .role-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
     .blind {
       position: fixed;
       inset: 0;
-      z-index: 12;
+      z-index: 22;
       display: none;
       place-items: center;
       background: rgba(0, 0, 0, 0.92);
@@ -250,39 +290,29 @@
       display: grid;
     }
 
-    .paint-panel {
+    .paint-tools {
       position: fixed;
       right: 14px;
       bottom: 14px;
       z-index: 14;
       display: none;
-      width: min(280px, calc(100% - 28px));
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
       border: 1px solid var(--panel-border);
       border-radius: 8px;
-      padding: 12px;
-      background: rgba(18, 24, 31, 0.9);
+      background: rgba(18, 24, 31, 0.82);
       backdrop-filter: blur(12px);
     }
 
-    .paint-panel.is-visible {
-      display: block;
+    .paint-tools.is-visible {
+      display: flex;
     }
 
-    .paint-canvas {
-      width: 100%;
-      aspect-ratio: 1;
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      background: #ffffff;
-      cursor: crosshair;
-      touch-action: none;
-    }
-
-    .paint-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
+    .paint-tools input {
+      width: 48px;
+      min-height: 36px;
+      padding: 2px;
     }
 
     .hint {
@@ -290,7 +320,7 @@
       left: 50%;
       bottom: 18px;
       z-index: 9;
-      width: min(620px, calc(100% - 28px));
+      width: min(720px, calc(100% - 28px));
       transform: translateX(-50%);
       padding: 10px 12px;
       border: 1px solid var(--panel-border);
@@ -303,7 +333,7 @@
       pointer-events: none;
     }
 
-    @media (max-width: 620px) {
+    @media (max-width: 680px) {
       .panel {
         padding: 18px;
       }
@@ -349,34 +379,30 @@
     <span id="blindLabel"></span>
     <div class="hud-actions">
       <button id="startGameButton" class="is-hidden" type="button">Start Game</button>
-      <button id="paintModeButton" type="button">Paint</button>
     </div>
   </div>
 
   <div id="crosshair" class="crosshair"></div>
   <div id="blindOverlay" class="blind">Blind time: <span id="blindTimeLabel">30</span>s</div>
-  <div id="hint" class="hint">Click the game to lock mouse. WASD moves. Seeker clicks hiders to tag.</div>
 
-  <div id="paintPanel" class="paint-panel">
-    <canvas id="paintCanvas" class="paint-canvas" width="256" height="256"></canvas>
-    <div class="paint-row">
-      <input id="paintColorInput" type="color" value="#35c48f" aria-label="Paint color">
-      <button id="clearPaintButton" type="button">Clear</button>
+  <div id="roleOverlay" class="center-overlay">
+    <div class="role-card">
+      <h2 id="roleRevealTitle">You are...</h2>
+      <p id="roleRevealText">Get ready.</p>
     </div>
   </div>
 
+  <div id="paintTools" class="paint-tools">
+    <input id="paintColorInput" type="color" value="#35c48f" aria-label="Paint color">
+    <button id="clearPaintButton" type="button">Clear</button>
+  </div>
+
+  <div id="hint" class="hint">Click to lock camera. WASD moves, Space jumps, E paints directly on yourself, Seeker clicks Hiders to tag.</div>
+  <canvas id="paintCanvas" width="512" height="512" class="is-hidden"></canvas>
+
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
   <script type="module">
-    import * as THREE from "three";
-    import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
     const socket = io("https://colorhideandseek.onrender.com");
 
@@ -391,40 +417,56 @@
     const joinRoomButton = document.getElementById("joinRoomButton");
     const roomCodeInput = document.getElementById("roomCodeInput");
     const startGameButton = document.getElementById("startGameButton");
-    const paintModeButton = document.getElementById("paintModeButton");
-    const paintPanel = document.getElementById("paintPanel");
-    const paintCanvas = document.getElementById("paintCanvas");
-    const paintColorInput = document.getElementById("paintColorInput");
-    const clearPaintButton = document.getElementById("clearPaintButton");
     const blindOverlay = document.getElementById("blindOverlay");
     const blindTimeLabel = document.getElementById("blindTimeLabel");
-    const crosshair = document.getElementById("crosshair");
+    const roleOverlay = document.getElementById("roleOverlay");
+    const roleRevealTitle = document.getElementById("roleRevealTitle");
+    const roleRevealText = document.getElementById("roleRevealText");
+    const paintTools = document.getElementById("paintTools");
+    const paintColorInput = document.getElementById("paintColorInput");
+    const clearPaintButton = document.getElementById("clearPaintButton");
+    const paintCanvas = document.getElementById("paintCanvas");
     const hint = document.getElementById("hint");
+    const crosshair = document.getElementById("crosshair");
 
     const keyboardState = new Map();
     const remotePlayers = new Map();
+    const colliders = [];
     const raycaster = new THREE.Raycaster();
-    const centerPointer = new THREE.Vector2(0, 0);
     const paintContext = paintCanvas.getContext("2d", { willReadFrequently: false });
+    const textureLoader = new THREE.TextureLoader();
 
     const localState = {
       roomCode: null,
       playerId: null,
       hostId: null,
+      roomStatus: "lobby",
       role: "lobby",
+      scale: 1,
       isBlind: false,
       isCaught: false,
+      canMove: true,
       blindRemainingMs: 0,
+      revealRemainingMs: 0,
       sendIntervalMs: 75,
       lastMoveSentAt: 0,
       paintMode: false,
-      isPainting: false
+      isPainting: false,
+      baseColor: "#35c48f",
+      paintDataUrl: null,
+      lastSentPaintDataUrl: null,
+      localPaintDirty: false,
+      lastPaintSentAt: 0,
+      velocityY: 0,
+      grounded: true,
+      yaw: 0,
+      pitch: 0.38,
+      pointerLocked: false
     };
 
     let scene;
     let camera;
     let renderer;
-    let controls;
     let localPlayer;
     let localPaintTexture;
     let animationStarted = false;
@@ -461,14 +503,13 @@
     function startGameClient(response) {
       localState.roomCode = response.roomCode;
       localState.playerId = response.playerId || socket.id;
-      applyRoomState(response.room);
 
       lobby.classList.add("is-hidden");
       hud.classList.add("is-visible");
       roomCodeLabel.textContent = localState.roomCode;
 
       initScene();
-      syncPlayers(response.room?.players || []);
+      applyRoomState(response.room);
       startAnimationLoop();
     }
 
@@ -478,9 +519,9 @@
       }
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x14191f);
+      scene.background = new THREE.Color(0x151a1e);
 
-      camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 1000);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -488,35 +529,11 @@
       renderer.shadowMap.enabled = true;
       document.body.appendChild(renderer.domElement);
 
-      controls = new PointerLockControls(camera, renderer.domElement);
-      controls.getObject().position.set(0, 1.7, 8);
-      scene.add(controls.getObject());
-
-      controls.addEventListener("lock", () => {
-        crosshair.classList.add("is-visible");
-        hint.classList.add("is-hidden");
-      });
-
-      controls.addEventListener("unlock", () => {
-        crosshair.classList.remove("is-visible");
-        if (!localState.paintMode && !localState.isCaught) {
-          hint.classList.remove("is-hidden");
-        }
-      });
-
-      renderer.domElement.addEventListener("click", () => {
-        if (!localState.paintMode && !localState.isCaught && !controls.isLocked) {
-          controls.lock();
-        }
-      });
-
-      renderer.domElement.addEventListener("mousedown", handleWorldClick);
-
-      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x53606c, 1.55);
+      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x596875, 1.45);
       scene.add(ambientLight);
 
-      const sunLight = new THREE.DirectionalLight(0xffffff, 2.1);
-      sunLight.position.set(7, 12, 4);
+      const sunLight = new THREE.DirectionalLight(0xffffff, 2.25);
+      sunLight.position.set(8, 13, 6);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.set(1024, 1024);
       scene.add(sunLight);
@@ -525,80 +542,136 @@
       setupPaintCanvas("#35c48f");
 
       localPlayer = createPlayerMesh("#35c48f", true);
-      localPlayer.position.set(0, 1, 8);
+      localPlayer.position.set(0, 1, 10);
       scene.add(localPlayer);
+      updateCamera(1);
 
       window.addEventListener("resize", resizeRenderer);
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
       window.addEventListener("blur", () => keyboardState.clear());
+      document.addEventListener("pointerlockchange", handlePointerLockChange);
+      document.addEventListener("mousemove", handleMouseMove);
+      renderer.domElement.addEventListener("click", handleCanvasClick);
+      renderer.domElement.addEventListener("pointerdown", handlePointerDown);
+      renderer.domElement.addEventListener("pointermove", handlePointerMove);
+      renderer.domElement.addEventListener("pointerup", handlePointerUp);
+      renderer.domElement.addEventListener("pointercancel", handlePointerUp);
     }
 
     function buildHouseMap() {
       const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(42, 32),
-        new THREE.MeshStandardMaterial({ color: 0x324046, roughness: 0.85 })
+        new THREE.PlaneGeometry(46, 36),
+        new THREE.MeshStandardMaterial({ color: 0x33444a, roughness: 0.86 })
       );
       floor.rotation.x = -Math.PI / 2;
       floor.receiveShadow = true;
       scene.add(floor);
 
-      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x8b978e, roughness: 0.78 });
-      addBox("back-wall", [0, 2, -16], [42, 4, 0.45], wallMaterial);
-      addBox("front-wall-left", [-12, 2, 16], [18, 4, 0.45], wallMaterial);
-      addBox("front-wall-right", [12, 2, 16], [18, 4, 0.45], wallMaterial);
-      addBox("left-wall", [-21, 2, 0], [0.45, 4, 32], wallMaterial);
-      addBox("right-wall", [21, 2, 0], [0.45, 4, 32], wallMaterial);
-      addBox("room-divider", [0, 2, -2], [0.45, 4, 18], wallMaterial);
-      addBox("short-divider", [10, 2, 5], [14, 4, 0.45], wallMaterial);
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x9aa192, roughness: 0.8 });
+      const wood = new THREE.MeshStandardMaterial({ color: 0x6b4b34, roughness: 0.72 });
+      const darkWood = new THREE.MeshStandardMaterial({ color: 0x453628, roughness: 0.76 });
+      const fabric = new THREE.MeshStandardMaterial({ color: 0x6f4354, roughness: 0.84 });
+      const blue = new THREE.MeshStandardMaterial({ color: 0x486f88, roughness: 0.7 });
+      const white = new THREE.MeshStandardMaterial({ color: 0xc8d0c8, roughness: 0.68 });
+      const metal = new THREE.MeshStandardMaterial({ color: 0x7f8a90, roughness: 0.54, metalness: 0.12 });
 
-      const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x6d4c32, roughness: 0.7 });
-      const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x476b7c, roughness: 0.65 });
-      const shelfMaterial = new THREE.MeshStandardMaterial({ color: 0x5a6268, roughness: 0.8 });
+      addStaticBox("back-wall", [0, 2, -18], [46, 4, 0.55], wallMaterial);
+      addStaticBox("front-wall-left", [-14, 2, 18], [18, 4, 0.55], wallMaterial);
+      addStaticBox("front-wall-right", [14, 2, 18], [18, 4, 0.55], wallMaterial);
+      addStaticBox("left-wall", [-23, 2, 0], [0.55, 4, 36], wallMaterial);
+      addStaticBox("right-wall", [23, 2, 0], [0.55, 4, 36], wallMaterial);
+      addStaticBox("bedroom-wall", [-5, 2, -8], [0.5, 4, 20], wallMaterial);
+      addStaticBox("kitchen-wall", [9, 2, 4], [18, 4, 0.5], wallMaterial);
+      addStaticBox("closet-wall", [12, 2, -8], [0.5, 4, 12], wallMaterial);
 
-      addTable(-12, -8, tableMaterial);
-      addChair(-14, -8, chairMaterial);
-      addChair(-10, -8, chairMaterial);
-      addTable(12, -9, tableMaterial);
-      addChair(12, -11, chairMaterial);
-      addChair(14, -8, chairMaterial);
-      addBox("sofa", [12, 0.45, 10], [6, 0.9, 1.8], new THREE.MeshStandardMaterial({ color: 0x70394d, roughness: 0.72 }));
-      addBox("cabinet-a", [-18, 1.2, 9], [1.3, 2.4, 5], shelfMaterial);
-      addBox("cabinet-b", [18, 1.2, -4], [1.3, 2.4, 5], shelfMaterial);
-      addBox("kitchen-island", [-8, 0.65, 8], [5, 1.3, 2.4], tableMaterial);
+      addBed(-15, -12, wood, fabric);
+      addWardrobe(-20, -5, darkWood);
+      addWardrobe(-9, -16, darkWood);
+      addDrawer(-18, 2, wood);
+      addTable(-12, 7, wood);
+      addChair(-14, 7, blue);
+      addChair(-10, 7, blue);
 
-      const grid = new THREE.GridHelper(42, 21, 0x6d7d88, 0x46545d);
+      addKitchen(-2, 10, wood, white, metal);
+      addStaticBox("fridge", [8, 1.75, 12.5], [1.8, 3.5, 1.6], metal);
+      addStaticBox("oven", [3.5, 0.8, 12.5], [1.8, 1.6, 1.4], metal);
+
+      addStaticBox("sofa", [15, 0.55, 11], [6.2, 1.1, 2], fabric);
+      addStaticBox("sofa-back", [15, 1.25, 11.8], [6.2, 1.5, 0.45], fabric);
+      addStaticBox("coffee-table", [15, 0.42, 7.2], [3.6, 0.45, 1.5], wood);
+      addStaticBox("tv-stand", [20, 0.7, 3], [1.3, 1.4, 5], darkWood);
+      addStaticBox("bookshelf", [20.1, 1.7, -8], [1.4, 3.4, 5], darkWood);
+      addStaticBox("plant-pot", [19, 0.45, -15], [1, 0.9, 1], new THREE.MeshStandardMaterial({ color: 0x8a5640, roughness: 0.8 }));
+      addStaticBox("plant-top", [19, 1.55, -15], [1.6, 1.6, 1.6], new THREE.MeshStandardMaterial({ color: 0x2f8f5b, roughness: 0.9 }), false);
+
+      const grid = new THREE.GridHelper(46, 23, 0x6d7d88, 0x46545d);
       grid.position.y = 0.015;
       scene.add(grid);
     }
 
-    function addBox(name, position, scale, material) {
+    function addStaticBox(name, position, scale, material, collides = true) {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(scale[0], scale[1], scale[2]), material);
       mesh.name = name;
       mesh.position.set(position[0], position[1], position[2]);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       scene.add(mesh);
+
+      if (collides) {
+        colliders.push({
+          minX: position[0] - scale[0] / 2,
+          maxX: position[0] + scale[0] / 2,
+          minZ: position[2] - scale[2] / 2,
+          maxZ: position[2] + scale[2] / 2
+        });
+      }
+
       return mesh;
     }
 
+    function addBed(x, z, wood, fabric) {
+      addStaticBox("bed-frame", [x, 0.45, z], [5.2, 0.9, 3.2], wood);
+      addStaticBox("bed-mattress", [x, 1.05, z], [4.8, 0.45, 2.8], fabric, false);
+      addStaticBox("bed-pillow", [x - 1.5, 1.35, z - 0.85], [1.4, 0.35, 0.8], new THREE.MeshStandardMaterial({ color: 0xd6d2c6, roughness: 0.9 }), false);
+    }
+
+    function addWardrobe(x, z, material) {
+      addStaticBox("wardrobe", [x, 1.65, z], [2.2, 3.3, 3], material);
+      addStaticBox("wardrobe-door-a", [x - 0.58, 1.65, z + 1.53], [0.08, 2.8, 1.25], material, false);
+      addStaticBox("wardrobe-door-b", [x + 0.58, 1.65, z + 1.53], [0.08, 2.8, 1.25], material, false);
+    }
+
+    function addDrawer(x, z, material) {
+      addStaticBox("drawer-body", [x, 0.95, z], [3, 1.9, 1.4], material);
+      addStaticBox("drawer-front-a", [x, 1.3, z + 0.73], [2.6, 0.45, 0.08], material, false);
+      addStaticBox("drawer-front-b", [x, 0.75, z + 0.73], [2.6, 0.45, 0.08], material, false);
+    }
+
     function addTable(x, z, material) {
-      addBox("table-top", [x, 1.05, z], [4, 0.3, 2.2], material);
-      addBox("table-leg", [x - 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
-      addBox("table-leg", [x + 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
-      addBox("table-leg", [x - 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
-      addBox("table-leg", [x + 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
+      addStaticBox("table-top", [x, 1.05, z], [4, 0.3, 2.2], material);
+      addStaticBox("table-leg", [x - 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
+      addStaticBox("table-leg", [x + 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
+      addStaticBox("table-leg", [x - 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
+      addStaticBox("table-leg", [x + 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
     }
 
     function addChair(x, z, material) {
-      addBox("chair-seat", [x, 0.55, z], [1, 0.3, 1], material);
-      addBox("chair-back", [x, 1.2, z + 0.45], [1, 1.2, 0.25], material);
+      addStaticBox("chair-seat", [x, 0.55, z], [1, 0.3, 1], material);
+      addStaticBox("chair-back", [x, 1.2, z + 0.45], [1, 1.2, 0.25], material);
+    }
+
+    function addKitchen(x, z, wood, white, metal) {
+      addStaticBox("kitchen-counter-a", [x, 0.75, z], [7, 1.5, 1.5], white);
+      addStaticBox("kitchen-counter-b", [x - 3.4, 0.75, z - 2.5], [1.5, 1.5, 5], white);
+      addStaticBox("kitchen-island", [x + 6, 0.8, z - 2.2], [4.8, 1.6, 2], wood);
+      addStaticBox("sink", [x - 1.5, 1.62, z], [1.5, 0.18, 1], metal, false);
     }
 
     function createPlayerMesh(color, usePaintTexture = false) {
       const geometry = new THREE.CapsuleGeometry(0.45, 1.1, 8, 18);
       const material = new THREE.MeshStandardMaterial({
-        color,
+        color: usePaintTexture ? 0xffffff : color,
         roughness: 0.56,
         metalness: 0.02,
         transparent: true
@@ -619,21 +692,46 @@
     function setupPaintCanvas(baseColor) {
       paintContext.fillStyle = baseColor;
       paintContext.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
-      paintContext.fillStyle = "rgba(255,255,255,0.18)";
-      paintContext.fillRect(0, 0, paintCanvas.width, 64);
-    }
-
-    function setLocalPlayerColor(color) {
-      if (!localPlayer) {
-        return;
-      }
-
-      localPlayer.material.color.set(color);
-      setupPaintCanvas(color);
+      paintContext.fillStyle = "rgba(255,255,255,0.2)";
+      paintContext.fillRect(0, 0, paintCanvas.width, 92);
 
       if (localPaintTexture) {
         localPaintTexture.needsUpdate = true;
       }
+    }
+
+    function setLocalPlayerTexture(player) {
+      if (!localPlayer) {
+        return;
+      }
+
+      const previousBaseColor = localState.baseColor;
+
+      if (player.color) {
+        localState.baseColor = player.color;
+      }
+
+      if (localState.localPaintDirty && player.paintDataUrl !== localState.lastSentPaintDataUrl) {
+        return;
+      }
+
+      if (player.paintDataUrl && player.paintDataUrl !== localState.paintDataUrl) {
+        localState.paintDataUrl = player.paintDataUrl;
+        localState.localPaintDirty = false;
+        const image = new Image();
+        image.onload = () => {
+          paintContext.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+          paintContext.drawImage(image, 0, 0, paintCanvas.width, paintCanvas.height);
+          localPaintTexture.needsUpdate = true;
+        };
+        image.src = player.paintDataUrl;
+      } else if (!player.paintDataUrl && (localState.paintDataUrl !== null || previousBaseColor !== localState.baseColor)) {
+        localState.paintDataUrl = null;
+        localState.localPaintDirty = false;
+        setupPaintCanvas(localState.baseColor);
+      }
+
+      localPlayer.material.color.set(0xffffff);
     }
 
     function syncPlayers(players) {
@@ -650,9 +748,11 @@
 
         if (playerId === localState.playerId) {
           localState.role = player.role || localState.role;
+          localState.scale = player.scale || 1;
           localState.isBlind = Boolean(player.isBlind);
           localState.isCaught = Boolean(player.isCaught);
-          setLocalPlayerColor(player.color || "#35c48f");
+          setLocalPlayerTexture(player);
+          applyLocalScale();
           continue;
         }
 
@@ -683,9 +783,20 @@
         scene.add(mesh);
       }
 
-      if (payload.color) {
+      if (payload.paintDataUrl && mesh.userData.paintDataUrl !== payload.paintDataUrl) {
+        mesh.userData.paintDataUrl = payload.paintDataUrl;
+        textureLoader.load(payload.paintDataUrl, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          mesh.material.map = texture;
+          mesh.material.color.set(0xffffff);
+          mesh.material.needsUpdate = true;
+        });
+      } else if (payload.color && !payload.paintDataUrl) {
         mesh.material.color.set(payload.color);
       }
+
+      const scale = payload.scale || 1;
+      mesh.scale.setScalar(scale);
 
       if (payload.position) {
         mesh.position.set(payload.position.x ?? mesh.position.x, payload.position.y ?? 1, payload.position.z ?? mesh.position.z);
@@ -715,40 +826,109 @@
       }
 
       localState.hostId = room.hostId;
+      localState.roomStatus = room.status;
       localState.blindRemainingMs = room.blindRemainingMs || 0;
+      localState.revealRemainingMs = room.revealRemainingMs || 0;
 
       const localPlayerState = room.players?.find((player) => normalizePlayerId(player) === localState.playerId);
 
       if (localPlayerState) {
+        const previousRole = localState.role;
         localState.role = localPlayerState.role || "lobby";
+        localState.scale = localPlayerState.scale || 1;
         localState.isBlind = Boolean(localPlayerState.isBlind);
         localState.isCaught = Boolean(localPlayerState.isCaught);
+
+        if (room.status === "revealing" && previousRole !== localState.role) {
+          showRoleReveal();
+        }
       }
 
       if (scene) {
         syncPlayers(room.players || []);
       }
 
+      localState.canMove = room.status === "playing" && !localState.isCaught;
       updateHud();
     }
 
+    function showRoleReveal() {
+      const isSeeker = localState.role === "seeker";
+      roleRevealTitle.textContent = isSeeker ? "You are the Seeker" : "You are a Hider";
+      roleRevealText.textContent = isSeeker
+        ? "You will be blind first. Count it down, then hunt."
+        : "You are smaller now. Hide before the hunt begins.";
+      roleOverlay.classList.add("is-visible");
+    }
+
     function updateHud() {
-      roleLabel.textContent = localState.role.toUpperCase();
+      const statusPrefix = localState.roomStatus === "revealing" ? "REVEAL " : "";
+      roleLabel.textContent = `${statusPrefix}${localState.isCaught ? "SPECTATOR" : localState.role.toUpperCase()}`;
       startGameButton.classList.toggle("is-hidden", localState.hostId !== localState.playerId || localState.role !== "lobby");
-      blindOverlay.classList.toggle("is-visible", localState.isBlind && localState.role === "seeker");
+      roleOverlay.classList.toggle("is-visible", localState.roomStatus === "revealing");
+      blindOverlay.classList.toggle("is-visible", localState.isBlind && localState.role === "seeker" && localState.roomStatus === "playing");
       blindTimeLabel.textContent = Math.ceil(localState.blindRemainingMs / 1000);
       blindLabel.textContent = localState.isBlind ? `Blind ${Math.ceil(localState.blindRemainingMs / 1000)}s` : "";
+    }
 
-      if (localState.isCaught) {
-        roleLabel.textContent = "SPECTATOR";
+    function applyLocalScale() {
+      if (!localPlayer) {
+        return;
+      }
+
+      localPlayer.scale.setScalar(localState.scale);
+      localPlayer.position.y = getPlayerGroundY();
+    }
+
+    function getPlayerGroundY() {
+      return localState.scale;
+    }
+
+    function getPlayerRadius() {
+      return 0.48 * localState.scale;
+    }
+
+    function handlePointerLockChange() {
+      localState.pointerLocked = document.pointerLockElement === renderer.domElement;
+      crosshair.classList.toggle("is-visible", localState.pointerLocked && !localState.paintMode);
+      hint.classList.toggle("is-hidden", localState.pointerLocked || localState.paintMode);
+    }
+
+    function handleMouseMove(event) {
+      if (!localState.pointerLocked || localState.paintMode) {
+        return;
+      }
+
+      localState.yaw -= event.movementX * 0.0025;
+      localState.pitch = THREE.MathUtils.clamp(localState.pitch + event.movementY * 0.002, 0.08, 0.92);
+    }
+
+    function handleCanvasClick(event) {
+      if (!localState.paintMode && !localState.isCaught && !localState.pointerLocked) {
+        renderer.domElement.requestPointerLock();
+        return;
+      }
+
+      if (!localState.paintMode) {
+        handleWorldClick(event);
       }
     }
 
     function handleKeyDown(event) {
-      const code = event.code;
+      if (event.code === "KeyE" && scene) {
+        event.preventDefault();
+        togglePaintMode();
+        return;
+      }
 
-      if (["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftRight"].includes(code)) {
-        keyboardState.set(code, true);
+      if (event.code === "Space" && localState.grounded && localState.canMove && !localState.paintMode) {
+        event.preventDefault();
+        localState.velocityY = 6.8;
+        localState.grounded = false;
+      }
+
+      if (["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftRight", "Space"].includes(event.code)) {
+        keyboardState.set(event.code, true);
       }
     }
 
@@ -757,29 +937,87 @@
     }
 
     function updateLocalMovement(deltaSeconds) {
-      if (!controls || !controls.isLocked || localState.paintMode || localState.isCaught) {
+      if (!localState.canMove || localState.paintMode) {
         return;
       }
 
-      const speed = keyboardState.get("ShiftLeft") || keyboardState.get("ShiftRight") ? 8.2 : 5.4;
-      const forward = Number(Boolean(keyboardState.get("KeyW"))) - Number(Boolean(keyboardState.get("KeyS")));
-      const right = Number(Boolean(keyboardState.get("KeyD"))) - Number(Boolean(keyboardState.get("KeyA")));
+      const speed = keyboardState.get("ShiftLeft") || keyboardState.get("ShiftRight") ? 7.4 : 4.8;
+      const forwardInput = Number(Boolean(keyboardState.get("KeyW"))) - Number(Boolean(keyboardState.get("KeyS")));
+      const rightInput = Number(Boolean(keyboardState.get("KeyD"))) - Number(Boolean(keyboardState.get("KeyA")));
 
-      if (forward !== 0) {
-        controls.moveForward(forward * speed * deltaSeconds);
+      const forward = new THREE.Vector3(Math.sin(localState.yaw), 0, Math.cos(localState.yaw) * -1);
+      const right = new THREE.Vector3(Math.cos(localState.yaw), 0, Math.sin(localState.yaw));
+      const move = new THREE.Vector3()
+        .addScaledVector(forward, forwardInput)
+        .addScaledVector(right, rightInput);
+
+      if (move.lengthSq() > 0) {
+        move.normalize().multiplyScalar(speed * deltaSeconds);
+        moveWithCollisions(move.x, move.z);
+        localPlayer.rotation.y = Math.atan2(move.x, move.z);
       }
 
-      if (right !== 0) {
-        controls.moveRight(right * speed * deltaSeconds);
+      updateJump(deltaSeconds);
+    }
+
+    function moveWithCollisions(dx, dz) {
+      const nextX = localPlayer.position.x + dx;
+
+      if (!wouldCollide(nextX, localPlayer.position.z)) {
+        localPlayer.position.x = nextX;
       }
 
-      const object = controls.getObject();
-      object.position.x = THREE.MathUtils.clamp(object.position.x, -19.5, 19.5);
-      object.position.z = THREE.MathUtils.clamp(object.position.z, -14.5, 14.5);
-      object.position.y = 1.7;
+      const nextZ = localPlayer.position.z + dz;
 
-      localPlayer.position.set(object.position.x, 1, object.position.z);
-      localPlayer.rotation.y = object.rotation.y;
+      if (!wouldCollide(localPlayer.position.x, nextZ)) {
+        localPlayer.position.z = nextZ;
+      }
+
+      localPlayer.position.x = THREE.MathUtils.clamp(localPlayer.position.x, -21.8, 21.8);
+      localPlayer.position.z = THREE.MathUtils.clamp(localPlayer.position.z, -16.8, 16.8);
+    }
+
+    function wouldCollide(x, z) {
+      const radius = getPlayerRadius();
+
+      return colliders.some((box) => (
+        x + radius > box.minX
+        && x - radius < box.maxX
+        && z + radius > box.minZ
+        && z - radius < box.maxZ
+      ));
+    }
+
+    function updateJump(deltaSeconds) {
+      localState.velocityY -= 18 * deltaSeconds;
+      localPlayer.position.y += localState.velocityY * deltaSeconds;
+
+      const groundY = getPlayerGroundY();
+
+      if (localPlayer.position.y <= groundY) {
+        localPlayer.position.y = groundY;
+        localState.velocityY = 0;
+        localState.grounded = true;
+      }
+    }
+
+    function updateCamera(smoothing = 0.12) {
+      if (!localPlayer || localState.isCaught) {
+        return;
+      }
+
+      const playerFocus = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y + 0.9 * localState.scale, localPlayer.position.z);
+      const distance = localState.paintMode ? 4.4 : 6.5;
+      const height = localState.paintMode ? 1.65 : 2.4;
+      const horizontal = Math.cos(localState.pitch) * distance;
+      const cameraTarget = new THREE.Vector3(
+        playerFocus.x - Math.sin(localState.yaw) * horizontal,
+        playerFocus.y + Math.sin(localState.pitch) * distance + height,
+        playerFocus.z + Math.cos(localState.yaw) * horizontal
+      );
+
+      camera.position.lerp(cameraTarget, smoothing);
+      camera.lookAt(playerFocus);
     }
 
     function updateSpectatorCamera() {
@@ -793,7 +1031,7 @@
         return;
       }
 
-      const target = new THREE.Vector3(seeker.position.x, 4.2, seeker.position.z + 6);
+      const target = new THREE.Vector3(seeker.position.x, 4.5, seeker.position.z + 6);
       camera.position.lerp(target, 0.08);
       camera.lookAt(seeker.position.x, seeker.position.y + 0.7, seeker.position.z);
     }
@@ -814,65 +1052,113 @@
         },
         rotation: {
           x: camera.rotation.x,
-          y: controls?.getObject().rotation.y || localPlayer.rotation.y,
+          y: localPlayer.rotation.y,
           z: camera.rotation.z
         }
       });
     }
 
-    function handleWorldClick(event) {
-      if (event.button !== 0 || localState.paintMode || localState.role !== "seeker" || localState.isBlind || localState.isCaught) {
+    function handlePointerDown(event) {
+      if (localState.paintMode && event.button === 0) {
+        localState.isPainting = true;
+        paintOnSelf(event, true);
+      }
+    }
+
+    function handlePointerMove(event) {
+      if (localState.paintMode && localState.isPainting) {
+        paintOnSelf(event, false);
+      }
+    }
+
+    function handlePointerUp() {
+      if (localState.isPainting) {
+        localState.isPainting = false;
+        sendPaintUpdate(true);
+      }
+    }
+
+    function paintOnSelf(event, forceSend) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const pointer = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+      );
+
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObject(localPlayer, false);
+
+      if (hits.length === 0 || !hits[0].uv) {
         return;
       }
 
-      raycaster.setFromCamera(centerPointer, camera);
+      const uv = hits[0].uv;
+      const x = uv.x * paintCanvas.width;
+      const y = (1 - uv.y) * paintCanvas.height;
+      paintContext.fillStyle = paintColorInput.value;
+      paintContext.beginPath();
+      paintContext.arc(x, y, 18, 0, Math.PI * 2);
+      paintContext.fill();
+      localPaintTexture.needsUpdate = true;
+      localState.paintDataUrl = null;
+      localState.localPaintDirty = true;
+      sendPaintUpdate(forceSend);
+    }
+
+    function sendPaintUpdate(force = false) {
+      const now = performance.now();
+
+      if (!force && now - localState.lastPaintSentAt < 260) {
+        return;
+      }
+
+      localState.lastPaintSentAt = now;
+      const paintDataUrl = paintCanvas.toDataURL("image/png");
+      localState.paintDataUrl = paintDataUrl;
+      localState.lastSentPaintDataUrl = paintDataUrl;
+      localState.localPaintDirty = false;
+      socket.emit("paint-update", {
+        roomCode: localState.roomCode,
+        paintDataUrl
+      });
+    }
+
+    function handleWorldClick(event) {
+      if (event.button !== 0 || localState.paintMode || localState.role !== "seeker" || localState.isBlind || localState.isCaught || localState.roomStatus !== "playing") {
+        return;
+      }
+
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
       const targets = Array.from(remotePlayers.values()).filter((mesh) => mesh.visible && mesh.userData.role === "hider" && !mesh.userData.isCaught);
       const hits = raycaster.intersectObjects(targets, false);
 
       if (hits.length > 0) {
-        const targetId = hits[0].object.userData.playerId;
         socket.emit("tag-player", {
           roomCode: localState.roomCode,
-          targetId
+          targetId: hits[0].object.userData.playerId
         });
       }
     }
 
     function togglePaintMode() {
       localState.paintMode = !localState.paintMode;
-      paintPanel.classList.toggle("is-visible", localState.paintMode);
-      paintModeButton.textContent = localState.paintMode ? "Close Paint" : "Paint";
+      paintTools.classList.toggle("is-visible", localState.paintMode);
+      crosshair.classList.toggle("is-visible", !localState.paintMode && localState.pointerLocked);
+      hint.textContent = localState.paintMode
+        ? "Paint mode: click directly on your avatar. Press E to return to movement."
+        : "Click to lock camera. WASD moves, Space jumps, E paints directly on yourself, Seeker clicks Hiders to tag.";
+      hint.classList.toggle("is-hidden", !localState.paintMode && localState.pointerLocked);
 
-      if (localState.paintMode && controls?.isLocked) {
-        controls.unlock();
-      }
-    }
-
-    function drawPaint(event) {
-      if (!localState.isPainting) {
-        return;
-      }
-
-      const rect = paintCanvas.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width) * paintCanvas.width;
-      const y = ((event.clientY - rect.top) / rect.height) * paintCanvas.height;
-
-      paintContext.fillStyle = paintColorInput.value;
-      paintContext.beginPath();
-      paintContext.arc(x, y, 10, 0, Math.PI * 2);
-      paintContext.fill();
-
-      if (localPaintTexture) {
-        localPaintTexture.needsUpdate = true;
+      if (localState.paintMode && document.pointerLockElement) {
+        document.exitPointerLock();
       }
     }
 
     function clearPaint() {
-      setupPaintCanvas(localPlayer?.material.color.getStyle() || "#35c48f");
-
-      if (localPaintTexture) {
-        localPaintTexture.needsUpdate = true;
-      }
+      setupPaintCanvas(localState.baseColor);
+      localState.paintDataUrl = null;
+      localState.localPaintDirty = true;
+      sendPaintUpdate(true);
     }
 
     function animate(now) {
@@ -880,6 +1166,7 @@
       previousFrameAt = now;
 
       updateLocalMovement(deltaSeconds);
+      updateCamera();
       updateSpectatorCamera();
       sendMoveIfNeeded(now);
 
@@ -966,23 +1253,7 @@
       }
     });
 
-    paintModeButton.addEventListener("click", togglePaintMode);
     clearPaintButton.addEventListener("click", clearPaint);
-
-    paintCanvas.addEventListener("pointerdown", (event) => {
-      localState.isPainting = true;
-      paintCanvas.setPointerCapture(event.pointerId);
-      drawPaint(event);
-    });
-
-    paintCanvas.addEventListener("pointermove", drawPaint);
-    paintCanvas.addEventListener("pointerup", () => {
-      localState.isPainting = false;
-    });
-
-    paintCanvas.addEventListener("pointercancel", () => {
-      localState.isPainting = false;
-    });
 
     roomCodeInput.addEventListener("input", () => {
       roomCodeInput.value = roomCodeInput.value.replace(/\D/g, "").slice(0, 4);
@@ -993,6 +1264,8 @@
         joinRoomButton.click();
       }
     });
+
+    renderer?.domElement?.addEventListener?.("click", handleWorldClick);
 
     socket.on("connect", () => {
       connectionDot.classList.add("is-online");

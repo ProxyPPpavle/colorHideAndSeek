@@ -6,6 +6,7 @@ const path = require("path");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3000;
+const ROLE_REVEAL_MS = 5000;
 const BLIND_TIME_MS = 30000;
 const TAG_DISTANCE = 2.25;
 const GAME_STATE_TICK_MS = 250;
@@ -76,8 +77,10 @@ function createPlayer(socketId, room) {
     position: { x: 0, y: 1, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     role: "lobby",
+    scale: 1,
     isBlind: false,
     isCaught: false,
+    paintDataUrl: null,
     lastSeen: Date.now()
   };
 }
@@ -90,8 +93,10 @@ function getPlayers(room) {
     position: player.position,
     rotation: player.rotation,
     role: player.role,
+    scale: player.scale,
     isBlind: player.isBlind,
-    isCaught: player.isCaught
+    isCaught: player.isCaught,
+    paintDataUrl: player.paintDataUrl
   }));
 }
 
@@ -103,6 +108,7 @@ function getPublicRoom(roomCode) {
     roomCode,
     hostId: room.hostId,
     status: room.status,
+    revealRemainingMs: Math.max(0, room.playStartsAt - now),
     blindRemainingMs: Math.max(0, room.blindUntil - now),
     players: getPlayers(room)
   };
@@ -129,6 +135,10 @@ function getDistance(a, b) {
 }
 
 function updateBlindStates(room) {
+  if (room.status === "revealing" && Date.now() >= room.playStartsAt) {
+    room.status = "playing";
+  }
+
   if (room.status !== "playing") {
     return;
   }
@@ -150,6 +160,7 @@ io.on("connection", (socket) => {
     const room = {
       hostId: socket.id,
       status: "lobby",
+      playStartsAt: 0,
       blindUntil: 0,
       players: new Map()
     };
@@ -231,11 +242,13 @@ io.on("connection", (socket) => {
     const playerIds = Array.from(room.players.keys());
     const seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
 
-    room.status = "playing";
-    room.blindUntil = Date.now() + BLIND_TIME_MS;
+    room.status = "revealing";
+    room.playStartsAt = Date.now() + ROLE_REVEAL_MS;
+    room.blindUntil = room.playStartsAt + BLIND_TIME_MS;
 
     for (const player of room.players.values()) {
       player.role = player.id === seekerId ? "seeker" : "hider";
+      player.scale = player.id === seekerId ? 1 : 0.62;
       player.isBlind = player.id === seekerId;
       player.isCaught = false;
     }
@@ -291,8 +304,10 @@ io.on("connection", (socket) => {
       position: player.position,
       rotation: player.rotation,
       role: player.role,
+      scale: player.scale,
       isBlind: player.isBlind,
       isCaught: player.isCaught,
+      paintDataUrl: player.paintDataUrl,
       timestamp: Date.now()
     };
 
@@ -330,6 +345,7 @@ io.on("connection", (socket) => {
 
     target.isCaught = true;
     target.role = "spectator";
+    target.scale = 1;
 
     const response = {
       ok: true,
@@ -345,6 +361,47 @@ io.on("connection", (socket) => {
 
     io.to(roomCode).emit("player-tagged", response);
     emitGameState(roomCode);
+  });
+
+  socket.on("paint-update", (payload = {}, callback) => {
+    const roomCode = normalizeRoomCode(payload.roomCode);
+    const room = rooms.get(roomCode);
+    const player = room?.players.get(socket.id);
+    const paintDataUrl = typeof payload.paintDataUrl === "string" ? payload.paintDataUrl : "";
+
+    if (!room || !player) {
+      const response = { ok: false, error: "NOT_IN_ROOM", message: "Player is not in this room." };
+      if (typeof callback === "function") callback(response);
+      return;
+    }
+
+    if (!paintDataUrl.startsWith("data:image/png;base64,") || paintDataUrl.length > 400000) {
+      const response = { ok: false, error: "INVALID_PAINT", message: "Paint payload is invalid." };
+      if (typeof callback === "function") callback(response);
+      return;
+    }
+
+    player.paintDataUrl = paintDataUrl;
+
+    const update = {
+      roomCode,
+      playerId: socket.id,
+      id: socket.id,
+      paintDataUrl,
+      color: player.color,
+      position: player.position,
+      rotation: player.rotation,
+      role: player.role,
+      scale: player.scale,
+      isBlind: player.isBlind,
+      isCaught: player.isCaught
+    };
+
+    io.to(roomCode).emit("player-update", update);
+
+    if (typeof callback === "function") {
+      callback({ ok: true });
+    }
   });
 
   socket.on("disconnect", () => {
@@ -377,7 +434,7 @@ setInterval(() => {
   for (const [roomCode, room] of rooms.entries()) {
     updateBlindStates(room);
 
-    if (room.status === "playing") {
+    if (room.status === "playing" || room.status === "revealing") {
       emitGameState(roomCode);
     }
   }
