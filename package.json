@@ -1,0 +1,17 @@
+{
+  "name": "chatgbt-hide-and-seek-server",
+  "version": "1.0.0",
+  "description": "Socket.io game orchestrator for a multiplayer hide-and-seek game.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test-client": "node test-client.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  }
+}
