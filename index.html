@@ -11,10 +11,11 @@
       --panel: rgba(18, 24, 31, 0.88);
       --panel-border: rgba(255, 255, 255, 0.14);
       --text: #f3f7fb;
-      --muted: #9aa9b7;
+      --muted: #a8b5c2;
       --accent: #35c48f;
-      --accent-strong: #24a875;
-      --danger: #ff6b6b;
+      --accent-strong: #25a877;
+      --danger: #ff5c6c;
+      --warning: #ffcc4d;
       --field: rgba(255, 255, 255, 0.08);
     }
 
@@ -35,8 +36,6 @@
 
     canvas {
       display: block;
-      width: 100%;
-      height: 100%;
     }
 
     button,
@@ -45,15 +44,15 @@
     }
 
     button {
-      min-height: 44px;
+      min-height: 40px;
       border: 0;
       border-radius: 8px;
-      padding: 0 18px;
+      padding: 0 14px;
       background: var(--accent);
       color: #06130f;
       font-weight: 800;
       cursor: pointer;
-      transition: transform 140ms ease, background 140ms ease, opacity 140ms ease;
+      transition: background 140ms ease, opacity 140ms ease, transform 140ms ease;
     }
 
     button:hover {
@@ -63,7 +62,7 @@
 
     button:disabled {
       cursor: not-allowed;
-      opacity: 0.55;
+      opacity: 0.5;
       transform: none;
     }
 
@@ -76,7 +75,6 @@
       background: var(--field);
       color: var(--text);
       outline: none;
-      text-transform: uppercase;
     }
 
     input:focus {
@@ -87,21 +85,21 @@
     .lobby {
       position: fixed;
       inset: 0;
-      z-index: 10;
+      z-index: 20;
       display: grid;
       place-items: center;
       padding: 24px;
       background:
-        linear-gradient(135deg, rgba(16, 20, 25, 0.92), rgba(16, 20, 25, 0.66)),
-        radial-gradient(circle at center, rgba(53, 196, 143, 0.18), transparent 42%);
+        linear-gradient(135deg, rgba(16, 20, 25, 0.94), rgba(16, 20, 25, 0.7)),
+        radial-gradient(circle at center, rgba(53, 196, 143, 0.18), transparent 45%);
     }
 
-    .lobby.is-hidden {
-      display: none;
+    .is-hidden {
+      display: none !important;
     }
 
-    .lobby-panel {
-      width: min(440px, 100%);
+    .panel {
+      width: min(460px, 100%);
       border: 1px solid var(--panel-border);
       border-radius: 8px;
       padding: 24px;
@@ -148,24 +146,35 @@
 
     .hud {
       position: fixed;
-      top: 16px;
-      left: 16px;
-      z-index: 5;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
       display: none;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
-      max-width: calc(100% - 32px);
+      max-width: calc(100% - 28px);
       padding: 10px 12px;
       border: 1px solid var(--panel-border);
       border-radius: 8px;
-      background: rgba(18, 24, 31, 0.72);
-      color: var(--text);
+      background: rgba(18, 24, 31, 0.74);
       backdrop-filter: blur(12px);
       font-size: 14px;
     }
 
     .hud.is-visible {
       display: flex;
+    }
+
+    .hud-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 6px;
+    }
+
+    .hud-actions button {
+      min-height: 34px;
+      padding: 0 10px;
+      font-size: 13px;
     }
 
     .dot {
@@ -180,13 +189,122 @@
       background: var(--accent);
     }
 
-    .room-code {
+    .room-code,
+    .role {
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
 
-    @media (max-width: 520px) {
-      .lobby-panel {
+    .crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 8;
+      width: 18px;
+      height: 18px;
+      display: none;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .crosshair::before {
+      top: 8px;
+      left: 0;
+      width: 18px;
+      height: 2px;
+    }
+
+    .crosshair::after {
+      top: 0;
+      left: 8px;
+      width: 2px;
+      height: 18px;
+    }
+
+    .crosshair.is-visible {
+      display: block;
+    }
+
+    .blind {
+      position: fixed;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.92);
+      color: var(--text);
+      text-align: center;
+      pointer-events: none;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .blind.is-visible {
+      display: grid;
+    }
+
+    .paint-panel {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 14;
+      display: none;
+      width: min(280px, calc(100% - 28px));
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(18, 24, 31, 0.9);
+      backdrop-filter: blur(12px);
+    }
+
+    .paint-panel.is-visible {
+      display: block;
+    }
+
+    .paint-canvas {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: #ffffff;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .paint-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .hint {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      z-index: 9;
+      width: min(620px, calc(100% - 28px));
+      transform: translateX(-50%);
+      padding: 10px 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      background: rgba(18, 24, 31, 0.72);
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+      backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+
+    @media (max-width: 620px) {
+      .panel {
         padding: 18px;
       }
 
@@ -194,17 +312,22 @@
         grid-template-columns: 1fr;
       }
 
-      .title {
-        font-size: 24px;
+      .hud {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hud-actions {
+        margin-left: 0;
       }
     }
   </style>
 </head>
 <body>
   <div id="lobby" class="lobby">
-    <section class="lobby-panel" aria-label="Lobby">
+    <section class="panel" aria-label="Lobby">
       <h1 class="title">Color Hide And Seek</h1>
-      <p class="subtitle">Multiplayer test lobby</p>
+      <p class="subtitle">Create a room, wait for friends, then start the hunt.</p>
 
       <div class="stack">
         <button id="createRoomButton" type="button">Create Room</button>
@@ -221,12 +344,39 @@
 
   <div id="hud" class="hud">
     <span id="connectionDot" class="dot" aria-hidden="true"></span>
-    <span id="hudText">Room <span id="roomCodeLabel" class="room-code">----</span></span>
+    <span>Room <span id="roomCodeLabel" class="room-code">----</span></span>
+    <span>Role <span id="roleLabel" class="role">LOBBY</span></span>
+    <span id="blindLabel"></span>
+    <div class="hud-actions">
+      <button id="startGameButton" class="is-hidden" type="button">Start Game</button>
+      <button id="paintModeButton" type="button">Paint</button>
+    </div>
+  </div>
+
+  <div id="crosshair" class="crosshair"></div>
+  <div id="blindOverlay" class="blind">Blind time: <span id="blindTimeLabel">30</span>s</div>
+  <div id="hint" class="hint">Click the game to lock mouse. WASD moves. Seeker clicks hiders to tag.</div>
+
+  <div id="paintPanel" class="paint-panel">
+    <canvas id="paintCanvas" class="paint-canvas" width="256" height="256"></canvas>
+    <div class="paint-row">
+      <input id="paintColorInput" type="color" value="#35c48f" aria-label="Paint color">
+      <button id="clearPaintButton" type="button">Clear</button>
+    </div>
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module">
-    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+    import * as THREE from "three";
+    import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 
     const socket = io("https://colorhideandseek.onrender.com");
 
@@ -235,23 +385,48 @@
     const statusText = document.getElementById("statusText");
     const connectionDot = document.getElementById("connectionDot");
     const roomCodeLabel = document.getElementById("roomCodeLabel");
+    const roleLabel = document.getElementById("roleLabel");
+    const blindLabel = document.getElementById("blindLabel");
     const createRoomButton = document.getElementById("createRoomButton");
     const joinRoomButton = document.getElementById("joinRoomButton");
     const roomCodeInput = document.getElementById("roomCodeInput");
+    const startGameButton = document.getElementById("startGameButton");
+    const paintModeButton = document.getElementById("paintModeButton");
+    const paintPanel = document.getElementById("paintPanel");
+    const paintCanvas = document.getElementById("paintCanvas");
+    const paintColorInput = document.getElementById("paintColorInput");
+    const clearPaintButton = document.getElementById("clearPaintButton");
+    const blindOverlay = document.getElementById("blindOverlay");
+    const blindTimeLabel = document.getElementById("blindTimeLabel");
+    const crosshair = document.getElementById("crosshair");
+    const hint = document.getElementById("hint");
 
-    const keys = new Set();
+    const keyboardState = new Map();
     const remotePlayers = new Map();
+    const raycaster = new THREE.Raycaster();
+    const centerPointer = new THREE.Vector2(0, 0);
+    const paintContext = paintCanvas.getContext("2d", { willReadFrequently: false });
+
     const localState = {
       roomCode: null,
       playerId: null,
+      hostId: null,
+      role: "lobby",
+      isBlind: false,
+      isCaught: false,
+      blindRemainingMs: 0,
+      sendIntervalMs: 75,
       lastMoveSentAt: 0,
-      sendIntervalMs: 75
+      paintMode: false,
+      isPainting: false
     };
 
     let scene;
     let camera;
     let renderer;
+    let controls;
     let localPlayer;
+    let localPaintTexture;
     let animationStarted = false;
     let previousFrameAt = performance.now();
 
@@ -279,16 +454,21 @@
       });
     }
 
-    function startGame(response) {
+    function normalizePlayerId(player) {
+      return player?.playerId || player?.id;
+    }
+
+    function startGameClient(response) {
       localState.roomCode = response.roomCode;
       localState.playerId = response.playerId || socket.id;
+      applyRoomState(response.room);
 
       lobby.classList.add("is-hidden");
       hud.classList.add("is-visible");
       roomCodeLabel.textContent = localState.roomCode;
 
       initScene();
-      addKnownPlayers(response.room?.players || []);
+      syncPlayers(response.room?.players || []);
       startAnimationLoop();
     }
 
@@ -298,10 +478,9 @@
       }
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x101419);
+      scene.background = new THREE.Color(0x14191f);
 
-      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 7, 10);
+      camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -309,117 +488,318 @@
       renderer.shadowMap.enabled = true;
       document.body.appendChild(renderer.domElement);
 
-      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x53606c, 1.8);
+      controls = new PointerLockControls(camera, renderer.domElement);
+      controls.getObject().position.set(0, 1.7, 8);
+      scene.add(controls.getObject());
+
+      controls.addEventListener("lock", () => {
+        crosshair.classList.add("is-visible");
+        hint.classList.add("is-hidden");
+      });
+
+      controls.addEventListener("unlock", () => {
+        crosshair.classList.remove("is-visible");
+        if (!localState.paintMode && !localState.isCaught) {
+          hint.classList.remove("is-hidden");
+        }
+      });
+
+      renderer.domElement.addEventListener("click", () => {
+        if (!localState.paintMode && !localState.isCaught && !controls.isLocked) {
+          controls.lock();
+        }
+      });
+
+      renderer.domElement.addEventListener("mousedown", handleWorldClick);
+
+      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x53606c, 1.55);
       scene.add(ambientLight);
 
-      const sunLight = new THREE.DirectionalLight(0xffffff, 2.2);
-      sunLight.position.set(6, 10, 4);
+      const sunLight = new THREE.DirectionalLight(0xffffff, 2.1);
+      sunLight.position.set(7, 12, 4);
       sunLight.castShadow = true;
+      sunLight.shadow.mapSize.set(1024, 1024);
       scene.add(sunLight);
 
-      const floorGeometry = new THREE.PlaneGeometry(48, 48, 24, 24);
-      const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x31424b,
-        roughness: 0.82,
-        metalness: 0.04
-      });
-      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-      floor.rotation.x = -Math.PI / 2;
-      floor.receiveShadow = true;
-      scene.add(floor);
+      buildHouseMap();
+      setupPaintCanvas("#35c48f");
 
-      const grid = new THREE.GridHelper(48, 24, 0x6d7d88, 0x46545d);
-      grid.position.y = 0.01;
-      scene.add(grid);
-
-      localPlayer = createPlayerMesh(0x35c48f);
-      localPlayer.position.set(0, 1, 0);
+      localPlayer = createPlayerMesh("#35c48f", true);
+      localPlayer.position.set(0, 1, 8);
       scene.add(localPlayer);
 
       window.addEventListener("resize", resizeRenderer);
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
+      window.addEventListener("blur", () => keyboardState.clear());
     }
 
-    function createPlayerMesh(color) {
+    function buildHouseMap() {
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(42, 32),
+        new THREE.MeshStandardMaterial({ color: 0x324046, roughness: 0.85 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x8b978e, roughness: 0.78 });
+      addBox("back-wall", [0, 2, -16], [42, 4, 0.45], wallMaterial);
+      addBox("front-wall-left", [-12, 2, 16], [18, 4, 0.45], wallMaterial);
+      addBox("front-wall-right", [12, 2, 16], [18, 4, 0.45], wallMaterial);
+      addBox("left-wall", [-21, 2, 0], [0.45, 4, 32], wallMaterial);
+      addBox("right-wall", [21, 2, 0], [0.45, 4, 32], wallMaterial);
+      addBox("room-divider", [0, 2, -2], [0.45, 4, 18], wallMaterial);
+      addBox("short-divider", [10, 2, 5], [14, 4, 0.45], wallMaterial);
+
+      const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x6d4c32, roughness: 0.7 });
+      const chairMaterial = new THREE.MeshStandardMaterial({ color: 0x476b7c, roughness: 0.65 });
+      const shelfMaterial = new THREE.MeshStandardMaterial({ color: 0x5a6268, roughness: 0.8 });
+
+      addTable(-12, -8, tableMaterial);
+      addChair(-14, -8, chairMaterial);
+      addChair(-10, -8, chairMaterial);
+      addTable(12, -9, tableMaterial);
+      addChair(12, -11, chairMaterial);
+      addChair(14, -8, chairMaterial);
+      addBox("sofa", [12, 0.45, 10], [6, 0.9, 1.8], new THREE.MeshStandardMaterial({ color: 0x70394d, roughness: 0.72 }));
+      addBox("cabinet-a", [-18, 1.2, 9], [1.3, 2.4, 5], shelfMaterial);
+      addBox("cabinet-b", [18, 1.2, -4], [1.3, 2.4, 5], shelfMaterial);
+      addBox("kitchen-island", [-8, 0.65, 8], [5, 1.3, 2.4], tableMaterial);
+
+      const grid = new THREE.GridHelper(42, 21, 0x6d7d88, 0x46545d);
+      grid.position.y = 0.015;
+      scene.add(grid);
+    }
+
+    function addBox(name, position, scale, material) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(scale[0], scale[1], scale[2]), material);
+      mesh.name = name;
+      mesh.position.set(position[0], position[1], position[2]);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function addTable(x, z, material) {
+      addBox("table-top", [x, 1.05, z], [4, 0.3, 2.2], material);
+      addBox("table-leg", [x - 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
+      addBox("table-leg", [x + 1.65, 0.5, z - 0.8], [0.25, 1, 0.25], material);
+      addBox("table-leg", [x - 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
+      addBox("table-leg", [x + 1.65, 0.5, z + 0.8], [0.25, 1, 0.25], material);
+    }
+
+    function addChair(x, z, material) {
+      addBox("chair-seat", [x, 0.55, z], [1, 0.3, 1], material);
+      addBox("chair-back", [x, 1.2, z + 0.45], [1, 1.2, 0.25], material);
+    }
+
+    function createPlayerMesh(color, usePaintTexture = false) {
       const geometry = new THREE.CapsuleGeometry(0.45, 1.1, 8, 18);
       const material = new THREE.MeshStandardMaterial({
         color,
         roughness: 0.56,
-        metalness: 0.02
+        metalness: 0.02,
+        transparent: true
       });
+
+      if (usePaintTexture) {
+        localPaintTexture = new THREE.CanvasTexture(paintCanvas);
+        localPaintTexture.colorSpace = THREE.SRGBColorSpace;
+        material.map = localPaintTexture;
+      }
+
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
+      mesh.userData.playerId = null;
       return mesh;
     }
 
-    function getPlayerColor(playerId) {
-      let hash = 0;
-
-      for (let index = 0; index < playerId.length; index += 1) {
-        hash = (hash * 31 + playerId.charCodeAt(index)) >>> 0;
-      }
-
-      const hue = hash % 360;
-      return new THREE.Color(`hsl(${hue}, 72%, 58%)`);
+    function setupPaintCanvas(baseColor) {
+      paintContext.fillStyle = baseColor;
+      paintContext.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+      paintContext.fillStyle = "rgba(255,255,255,0.18)";
+      paintContext.fillRect(0, 0, paintCanvas.width, 64);
     }
 
-    function addKnownPlayers(playerIds) {
-      playerIds
-        .filter((playerId) => playerId && playerId !== localState.playerId)
-        .forEach((playerId) => {
-          if (!remotePlayers.has(playerId)) {
-            const mesh = createPlayerMesh(getPlayerColor(playerId));
-            mesh.position.set(0, 1, 0);
-            remotePlayers.set(playerId, mesh);
-            scene.add(mesh);
-          }
-        });
+    function setLocalPlayerColor(color) {
+      if (!localPlayer) {
+        return;
+      }
+
+      localPlayer.material.color.set(color);
+      setupPaintCanvas(color);
+
+      if (localPaintTexture) {
+        localPaintTexture.needsUpdate = true;
+      }
+    }
+
+    function syncPlayers(players) {
+      const activeIds = new Set();
+
+      for (const player of players) {
+        const playerId = normalizePlayerId(player);
+
+        if (!playerId) {
+          continue;
+        }
+
+        activeIds.add(playerId);
+
+        if (playerId === localState.playerId) {
+          localState.role = player.role || localState.role;
+          localState.isBlind = Boolean(player.isBlind);
+          localState.isCaught = Boolean(player.isCaught);
+          setLocalPlayerColor(player.color || "#35c48f");
+          continue;
+        }
+
+        updateRemotePlayer({ ...player, playerId });
+      }
+
+      for (const [playerId, mesh] of remotePlayers.entries()) {
+        if (!activeIds.has(playerId)) {
+          scene.remove(mesh);
+          remotePlayers.delete(playerId);
+        }
+      }
+
+      updateHud();
+    }
+
+    function updateRemotePlayer(payload) {
+      if (!payload || payload.playerId === localState.playerId || payload.roomCode && payload.roomCode !== localState.roomCode) {
+        return;
+      }
+
+      let mesh = remotePlayers.get(payload.playerId);
+
+      if (!mesh) {
+        mesh = createPlayerMesh(payload.color || "#4f8cff");
+        mesh.userData.playerId = payload.playerId;
+        remotePlayers.set(payload.playerId, mesh);
+        scene.add(mesh);
+      }
+
+      if (payload.color) {
+        mesh.material.color.set(payload.color);
+      }
+
+      if (payload.position) {
+        mesh.position.set(payload.position.x ?? mesh.position.x, payload.position.y ?? 1, payload.position.z ?? mesh.position.z);
+      }
+
+      if (payload.rotation) {
+        mesh.rotation.set(payload.rotation.x ?? 0, payload.rotation.y ?? mesh.rotation.y, payload.rotation.z ?? 0);
+      }
+
+      mesh.userData.role = payload.role;
+      mesh.userData.isCaught = Boolean(payload.isCaught);
+      mesh.visible = shouldShowRemotePlayer(payload);
+      mesh.material.opacity = payload.isCaught ? 0.35 : 1;
+    }
+
+    function shouldShowRemotePlayer(player) {
+      if (localState.isBlind && localState.role === "seeker") {
+        return false;
+      }
+
+      return !player.isCaught || localState.role === "spectator";
+    }
+
+    function applyRoomState(room) {
+      if (!room) {
+        return;
+      }
+
+      localState.hostId = room.hostId;
+      localState.blindRemainingMs = room.blindRemainingMs || 0;
+
+      const localPlayerState = room.players?.find((player) => normalizePlayerId(player) === localState.playerId);
+
+      if (localPlayerState) {
+        localState.role = localPlayerState.role || "lobby";
+        localState.isBlind = Boolean(localPlayerState.isBlind);
+        localState.isCaught = Boolean(localPlayerState.isCaught);
+      }
+
+      if (scene) {
+        syncPlayers(room.players || []);
+      }
+
+      updateHud();
+    }
+
+    function updateHud() {
+      roleLabel.textContent = localState.role.toUpperCase();
+      startGameButton.classList.toggle("is-hidden", localState.hostId !== localState.playerId || localState.role !== "lobby");
+      blindOverlay.classList.toggle("is-visible", localState.isBlind && localState.role === "seeker");
+      blindTimeLabel.textContent = Math.ceil(localState.blindRemainingMs / 1000);
+      blindLabel.textContent = localState.isBlind ? `Blind ${Math.ceil(localState.blindRemainingMs / 1000)}s` : "";
+
+      if (localState.isCaught) {
+        roleLabel.textContent = "SPECTATOR";
+      }
     }
 
     function handleKeyDown(event) {
-      const key = event.key.toLowerCase();
+      const code = event.code;
 
-      if (["w", "a", "s", "d"].includes(key)) {
-        keys.add(key);
+      if (["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftRight"].includes(code)) {
+        keyboardState.set(code, true);
       }
     }
 
     function handleKeyUp(event) {
-      keys.delete(event.key.toLowerCase());
+      keyboardState.set(event.code, false);
     }
 
     function updateLocalMovement(deltaSeconds) {
-      const moveDirection = new THREE.Vector3(
-        Number(keys.has("d")) - Number(keys.has("a")),
-        0,
-        Number(keys.has("s")) - Number(keys.has("w"))
-      );
-
-      if (moveDirection.lengthSq() === 0) {
+      if (!controls || !controls.isLocked || localState.paintMode || localState.isCaught) {
         return;
       }
 
-      moveDirection.normalize();
-      localPlayer.position.addScaledVector(moveDirection, 5.2 * deltaSeconds);
-      localPlayer.position.x = THREE.MathUtils.clamp(localPlayer.position.x, -23, 23);
-      localPlayer.position.z = THREE.MathUtils.clamp(localPlayer.position.z, -23, 23);
-      localPlayer.rotation.y = Math.atan2(moveDirection.x, moveDirection.z);
+      const speed = keyboardState.get("ShiftLeft") || keyboardState.get("ShiftRight") ? 8.2 : 5.4;
+      const forward = Number(Boolean(keyboardState.get("KeyW"))) - Number(Boolean(keyboardState.get("KeyS")));
+      const right = Number(Boolean(keyboardState.get("KeyD"))) - Number(Boolean(keyboardState.get("KeyA")));
+
+      if (forward !== 0) {
+        controls.moveForward(forward * speed * deltaSeconds);
+      }
+
+      if (right !== 0) {
+        controls.moveRight(right * speed * deltaSeconds);
+      }
+
+      const object = controls.getObject();
+      object.position.x = THREE.MathUtils.clamp(object.position.x, -19.5, 19.5);
+      object.position.z = THREE.MathUtils.clamp(object.position.z, -14.5, 14.5);
+      object.position.y = 1.7;
+
+      localPlayer.position.set(object.position.x, 1, object.position.z);
+      localPlayer.rotation.y = object.rotation.y;
     }
 
-    function updateCamera() {
-      const targetPosition = new THREE.Vector3(
-        localPlayer.position.x,
-        localPlayer.position.y + 6,
-        localPlayer.position.z + 9
-      );
+    function updateSpectatorCamera() {
+      if (!localState.isCaught) {
+        return;
+      }
 
-      camera.position.lerp(targetPosition, 0.1);
-      camera.lookAt(localPlayer.position.x, localPlayer.position.y + 0.6, localPlayer.position.z);
+      const seeker = Array.from(remotePlayers.values()).find((mesh) => mesh.userData.role === "seeker");
+
+      if (!seeker) {
+        return;
+      }
+
+      const target = new THREE.Vector3(seeker.position.x, 4.2, seeker.position.z + 6);
+      camera.position.lerp(target, 0.08);
+      camera.lookAt(seeker.position.x, seeker.position.y + 0.7, seeker.position.z);
     }
 
     function sendMoveIfNeeded(now) {
-      if (!localState.roomCode || now - localState.lastMoveSentAt < localState.sendIntervalMs) {
+      if (!localState.roomCode || !localPlayer || now - localState.lastMoveSentAt < localState.sendIntervalMs) {
         return;
       }
 
@@ -433,55 +813,66 @@
           z: localPlayer.position.z
         },
         rotation: {
-          x: localPlayer.rotation.x,
-          y: localPlayer.rotation.y,
-          z: localPlayer.rotation.z
+          x: camera.rotation.x,
+          y: controls?.getObject().rotation.y || localPlayer.rotation.y,
+          z: camera.rotation.z
         }
       });
     }
 
-    function updateRemotePlayer(payload) {
-      if (!payload || payload.playerId === localState.playerId || payload.roomCode !== localState.roomCode) {
+    function handleWorldClick(event) {
+      if (event.button !== 0 || localState.paintMode || localState.role !== "seeker" || localState.isBlind || localState.isCaught) {
         return;
       }
 
-      let mesh = remotePlayers.get(payload.playerId);
+      raycaster.setFromCamera(centerPointer, camera);
+      const targets = Array.from(remotePlayers.values()).filter((mesh) => mesh.visible && mesh.userData.role === "hider" && !mesh.userData.isCaught);
+      const hits = raycaster.intersectObjects(targets, false);
 
-      if (!mesh) {
-        mesh = createPlayerMesh(getPlayerColor(payload.playerId));
-        remotePlayers.set(payload.playerId, mesh);
-        scene.add(mesh);
-      }
-
-      if (payload.position) {
-        mesh.position.set(
-          payload.position.x ?? mesh.position.x,
-          payload.position.y ?? mesh.position.y,
-          payload.position.z ?? mesh.position.z
-        );
-      }
-
-      if (payload.rotation) {
-        mesh.rotation.set(
-          payload.rotation.x ?? mesh.rotation.x,
-          payload.rotation.y ?? mesh.rotation.y,
-          payload.rotation.z ?? mesh.rotation.z
-        );
+      if (hits.length > 0) {
+        const targetId = hits[0].object.userData.playerId;
+        socket.emit("tag-player", {
+          roomCode: localState.roomCode,
+          targetId
+        });
       }
     }
 
-    function removeRemotePlayer(payload) {
-      const playerId = payload?.playerId;
+    function togglePaintMode() {
+      localState.paintMode = !localState.paintMode;
+      paintPanel.classList.toggle("is-visible", localState.paintMode);
+      paintModeButton.textContent = localState.paintMode ? "Close Paint" : "Paint";
 
-      if (!playerId || !remotePlayers.has(playerId)) {
+      if (localState.paintMode && controls?.isLocked) {
+        controls.unlock();
+      }
+    }
+
+    function drawPaint(event) {
+      if (!localState.isPainting) {
         return;
       }
 
-      const mesh = remotePlayers.get(playerId);
-      remotePlayers.delete(playerId);
-      scene.remove(mesh);
-      mesh.geometry.dispose();
-      mesh.material.dispose();
+      const rect = paintCanvas.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * paintCanvas.width;
+      const y = ((event.clientY - rect.top) / rect.height) * paintCanvas.height;
+
+      paintContext.fillStyle = paintColorInput.value;
+      paintContext.beginPath();
+      paintContext.arc(x, y, 10, 0, Math.PI * 2);
+      paintContext.fill();
+
+      if (localPaintTexture) {
+        localPaintTexture.needsUpdate = true;
+      }
+    }
+
+    function clearPaint() {
+      setupPaintCanvas(localPlayer?.material.color.getStyle() || "#35c48f");
+
+      if (localPaintTexture) {
+        localPaintTexture.needsUpdate = true;
+      }
     }
 
     function animate(now) {
@@ -489,7 +880,7 @@
       previousFrameAt = now;
 
       updateLocalMovement(deltaSeconds);
-      updateCamera();
+      updateSpectatorCamera();
       sendMoveIfNeeded(now);
 
       renderer.render(scene, camera);
@@ -523,7 +914,7 @@
           throw new Error(response?.message || "Could not create room.");
         }
 
-        startGame(response);
+        startGameClient(response);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
@@ -549,12 +940,48 @@
           throw new Error(response?.message || "Could not join room.");
         }
 
-        startGame(response);
+        startGameClient(response);
       } catch (error) {
         setStatus(error.message, true);
       } finally {
         setBusy(false);
       }
+    });
+
+    startGameButton.addEventListener("click", async () => {
+      startGameButton.disabled = true;
+
+      try {
+        const response = await emitWithAck("start-game", { roomCode: localState.roomCode });
+
+        if (!response?.ok) {
+          throw new Error(response?.message || "Could not start game.");
+        }
+
+        applyRoomState(response.room);
+      } catch (error) {
+        console.warn(error.message);
+      } finally {
+        startGameButton.disabled = false;
+      }
+    });
+
+    paintModeButton.addEventListener("click", togglePaintMode);
+    clearPaintButton.addEventListener("click", clearPaint);
+
+    paintCanvas.addEventListener("pointerdown", (event) => {
+      localState.isPainting = true;
+      paintCanvas.setPointerCapture(event.pointerId);
+      drawPaint(event);
+    });
+
+    paintCanvas.addEventListener("pointermove", drawPaint);
+    paintCanvas.addEventListener("pointerup", () => {
+      localState.isPainting = false;
+    });
+
+    paintCanvas.addEventListener("pointercancel", () => {
+      localState.isPainting = false;
     });
 
     roomCodeInput.addEventListener("input", () => {
@@ -582,10 +1009,20 @@
       setStatus("Cannot reach server.", true);
     });
 
+    socket.on("game-state", (payload) => applyRoomState(payload?.room));
+    socket.on("game-started", (payload) => applyRoomState(payload?.room));
     socket.on("player-update", updateRemotePlayer);
-    socket.on("player-move", updateRemotePlayer);
-    socket.on("player-joined", (payload) => addKnownPlayers(payload?.players || [payload?.playerId]));
-    socket.on("player-left", removeRemotePlayer);
+    socket.on("player-joined", (payload) => applyRoomState(payload?.room));
+    socket.on("player-left", (payload) => {
+      if (payload?.playerId && remotePlayers.has(payload.playerId)) {
+        const mesh = remotePlayers.get(payload.playerId);
+        scene.remove(mesh);
+        remotePlayers.delete(payload.playerId);
+      }
+
+      applyRoomState(payload?.room);
+    });
+    socket.on("player-tagged", (payload) => applyRoomState(payload?.room));
   </script>
 </body>
 </html>
