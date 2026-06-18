@@ -462,6 +462,7 @@
       lastMoveSentAt: 0,
       paintMode: false,
       isPainting: false,
+      isCameraOrbitingPaint: false,
       baseColor: "#35c48f",
       paintDataUrl: null,
       lastSentPaintDataUrl: null,
@@ -568,6 +569,7 @@
       renderer.domElement.addEventListener("pointermove", handlePointerMove);
       renderer.domElement.addEventListener("pointerup", handlePointerUp);
       renderer.domElement.addEventListener("pointercancel", handlePointerUp);
+      renderer.domElement.addEventListener("contextmenu", (event) => event.preventDefault());
     }
 
     function buildHouseMap() {
@@ -579,7 +581,7 @@
       floor.receiveShadow = true;
       scene.add(floor);
 
-      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xd3d1c0, roughness: 0.78 });
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xe2dcc9, roughness: 0.78 });
       const wood = new THREE.MeshStandardMaterial({ color: 0x9a6a42, roughness: 0.72 });
       const darkWood = new THREE.MeshStandardMaterial({ color: 0x6e5139, roughness: 0.76 });
       const fabric = new THREE.MeshStandardMaterial({ color: 0x9a586b, roughness: 0.84 });
@@ -592,21 +594,22 @@
       addStaticBox("front-wall-right", [14, 2, 18], [18, 4, 0.55], wallMaterial);
       addStaticBox("left-wall", [-23, 2, 0], [0.55, 4, 36], wallMaterial);
       addStaticBox("right-wall", [23, 2, 0], [0.55, 4, 36], wallMaterial);
-      addStaticBox("bedroom-wall", [-5, 2, -8], [0.5, 4, 20], wallMaterial);
-      addStaticBox("kitchen-wall", [9, 2, 4], [18, 4, 0.5], wallMaterial);
-      addStaticBox("closet-wall", [12, 2, -8], [0.5, 4, 12], wallMaterial);
+      addStaticBox("bedroom-wall-a", [-5, 2, -12], [0.5, 4, 12], wallMaterial);
+      addStaticBox("bedroom-wall-b", [-5, 2, 3], [0.5, 4, 7], wallMaterial);
+      addStaticBox("kitchen-half-wall", [10, 1.25, 2], [13, 2.5, 0.5], wallMaterial);
+      addStaticBox("closet-wall", [12, 2, -11], [0.5, 4, 8], wallMaterial);
 
       addBed(-15, -12, wood, fabric);
       addWardrobe(-20, -5, darkWood);
       addWardrobe(-9, -16, darkWood);
       addDrawer(-18, 2, wood);
-      addTable(-12, 7, wood);
-      addChair(-14, 7, blue);
-      addChair(-10, 7, blue);
+      addTable(-13, 5, wood);
+      addChair(-15, 5, blue);
+      addChair(-11, 5, blue);
 
-      addKitchen(-2, 10, wood, white, metal);
-      addStaticBox("fridge", [8, 1.75, 12.5], [1.8, 3.5, 1.6], metal);
-      addStaticBox("oven", [3.5, 0.8, 12.5], [1.8, 1.6, 1.4], metal);
+      addKitchen(0, -2, wood, white, metal);
+      addStaticBox("fridge", [19.5, 1.75, -1], [1.8, 3.5, 1.6], metal);
+      addStaticBox("oven", [17, 0.8, -1], [1.8, 1.6, 1.4], metal);
 
       addStaticBox("sofa", [15, 0.55, 11], [6.2, 1.1, 2], fabric);
       addStaticBox("sofa-back", [15, 1.25, 11.8], [6.2, 1.5, 0.45], fabric);
@@ -615,10 +618,14 @@
       addStaticBox("bookshelf", [20.1, 1.7, -8], [1.4, 3.4, 5], darkWood);
       addStaticBox("plant-pot", [19, 0.45, -15], [1, 0.9, 1], new THREE.MeshStandardMaterial({ color: 0x8a5640, roughness: 0.8 }));
       addStaticBox("plant-top", [19, 1.55, -15], [1.6, 1.6, 1.6], new THREE.MeshStandardMaterial({ color: 0x2f8f5b, roughness: 0.9 }), false);
-
-      const grid = new THREE.GridHelper(46, 23, 0x6d7d88, 0x46545d);
-      grid.position.y = 0.015;
-      scene.add(grid);
+      addRug(14, 7.4, 7.5, 4.8, 0x456f7f);
+      addRug(-14, -9.5, 6.2, 4.4, 0x8b6f4e);
+      addLamp(10, 12.8);
+      addLamp(-6, 13.4);
+      addWindow(-22.72, -11, Math.PI / 2);
+      addWindow(22.72, 9, -Math.PI / 2);
+      addWallPicture(-14, -17.72);
+      addWallPicture(5, -17.72);
     }
 
     function addStaticBox(name, position, scale, material, collides = true) {
@@ -677,6 +684,62 @@
       addStaticBox("kitchen-counter-b", [x - 3.4, 0.75, z - 2.5], [1.5, 1.5, 5], white);
       addStaticBox("kitchen-island", [x + 6, 0.8, z - 2.2], [4.8, 1.6, 2], wood);
       addStaticBox("sink", [x - 1.5, 1.62, z], [1.5, 0.18, 1], metal, false);
+      addStaticBox("upper-cabinet-a", [x - 1.6, 2.75, z - 0.65], [3, 1, 0.5], wood, false);
+      addStaticBox("upper-cabinet-b", [x + 2.2, 2.75, z - 0.65], [3, 1, 0.5], wood, false);
+      addStaticBox("counter-handle-a", [x - 1.6, 1.22, z + 0.78], [2.3, 0.08, 0.08], metal, false);
+      addStaticBox("counter-handle-b", [x + 2.2, 1.22, z + 0.78], [2.3, 0.08, 0.08], metal, false);
+    }
+
+    function addRug(x, z, width, depth, color) {
+      const rug = new THREE.Mesh(
+        new THREE.BoxGeometry(width, 0.04, depth),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.95 })
+      );
+      rug.position.set(x, 0.035, z);
+      rug.receiveShadow = true;
+      scene.add(rug);
+    }
+
+    function addLamp(x, z) {
+      const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x303842, roughness: 0.5, metalness: 0.25 });
+      const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0xffe2a7, roughness: 0.7, emissive: 0x5a3d15, emissiveIntensity: 0.25 });
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.1, 14), poleMaterial);
+      pole.position.set(x, 1.05, z);
+      pole.castShadow = true;
+      scene.add(pole);
+
+      const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 0.65, 18), shadeMaterial);
+      shade.position.set(x, 2.35, z);
+      shade.castShadow = true;
+      scene.add(shade);
+
+      const light = new THREE.PointLight(0xffd79a, 1.2, 9);
+      light.position.set(x, 2.15, z);
+      scene.add(light);
+    }
+
+    function addWindow(x, z, rotationY) {
+      const frame = new THREE.Group();
+      const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x9dd5ff, roughness: 0.28, metalness: 0.05 });
+      const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 2.6), glassMaterial);
+      const trimTop = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 2.9), trimMaterial);
+      const trimBottom = trimTop.clone();
+      trimTop.position.y = 0.86;
+      trimBottom.position.y = -0.86;
+      frame.add(glass, trimTop, trimBottom);
+      frame.position.set(x, 2.2, z);
+      frame.rotation.y = rotationY;
+      scene.add(frame);
+    }
+
+    function addWallPicture(x, z) {
+      const picture = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2, 1.7, 0.08),
+        new THREE.MeshStandardMaterial({ color: 0x4f8cff, roughness: 0.66 })
+      );
+      picture.position.set(x, 2.35, z);
+      scene.add(picture);
     }
 
     function createPlayerMesh(color, usePaintTexture = false) {
@@ -820,7 +883,7 @@
       }
 
       if (payload.rotation) {
-        mesh.rotation.set(payload.rotation.x ?? 0, payload.rotation.y ?? mesh.rotation.y, payload.rotation.z ?? 0);
+        mesh.rotation.set(0, payload.rotation.y ?? mesh.rotation.y, 0);
       }
 
       mesh.userData.role = payload.role;
@@ -865,7 +928,7 @@
         syncPlayers(room.players || []);
       }
 
-      localState.canMove = room.status === "playing" && !localState.isCaught;
+      localState.canMove = room.status !== "revealing" && !localState.isCaught;
       updateHud();
     }
 
@@ -912,6 +975,12 @@
     }
 
     function handleMouseMove(event) {
+      if (localState.paintMode && localState.isCameraOrbitingPaint) {
+        localState.yaw -= event.movementX * 0.006;
+        localState.pitch = THREE.MathUtils.clamp(localState.pitch + event.movementY * 0.004, 0.08, 0.92);
+        return;
+      }
+
       if (!localState.pointerLocked || localState.paintMode) {
         return;
       }
@@ -1068,9 +1137,9 @@
           z: localPlayer.position.z
         },
         rotation: {
-          x: camera.rotation.x,
+          x: 0,
           y: localPlayer.rotation.y,
-          z: camera.rotation.z
+          z: 0
         }
       });
     }
@@ -1079,6 +1148,8 @@
       if (localState.paintMode && event.button === 0) {
         localState.isPainting = true;
         paintOnSelf(event, true);
+      } else if (localState.paintMode && event.button === 2) {
+        localState.isCameraOrbitingPaint = true;
       }
     }
 
@@ -1093,6 +1164,8 @@
         localState.isPainting = false;
         sendPaintUpdate(true);
       }
+
+      localState.isCameraOrbitingPaint = false;
     }
 
     function paintOnSelf(event, forceSend) {
@@ -1109,12 +1182,20 @@
         return;
       }
 
+      if (hits[0].face && Math.abs(hits[0].face.normal.y) > 0.64) {
+        return;
+      }
+
       const uv = hits[0].uv;
       const x = uv.x * paintCanvas.width;
       const y = (1 - uv.y) * paintCanvas.height;
-      paintContext.fillStyle = paintColorInput.value;
+      const radius = 8;
+      const gradient = paintContext.createRadialGradient(x, y, 1, x, y, radius);
+      gradient.addColorStop(0, paintColorInput.value);
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      paintContext.fillStyle = gradient;
       paintContext.beginPath();
-      paintContext.arc(x, y, 18, 0, Math.PI * 2);
+      paintContext.arc(x, y, radius, 0, Math.PI * 2);
       paintContext.fill();
       localPaintTexture.needsUpdate = true;
       localState.paintDataUrl = null;
