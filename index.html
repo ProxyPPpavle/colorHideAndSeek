@@ -323,6 +323,20 @@
       padding: 2px;
     }
 
+    .paint-tools input[type="range"] {
+      width: 120px;
+      min-height: 0;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+
+    .paint-size {
+      display: grid;
+      gap: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .hint {
       position: fixed;
       left: 50%;
@@ -404,6 +418,10 @@
 
   <div id="paintTools" class="paint-tools">
     <input id="paintColorInput" type="color" value="#35c48f" aria-label="Paint color">
+    <label class="paint-size">
+      Brush
+      <input id="brushSizeInput" type="range" min="4" max="32" value="12" aria-label="Brush size">
+    </label>
     <button id="clearPaintButton" type="button">Clear</button>
   </div>
 
@@ -434,6 +452,7 @@
     const roleRevealText = document.getElementById("roleRevealText");
     const paintTools = document.getElementById("paintTools");
     const paintColorInput = document.getElementById("paintColorInput");
+    const brushSizeInput = document.getElementById("brushSizeInput");
     const clearPaintButton = document.getElementById("clearPaintButton");
     const paintCanvas = document.getElementById("paintCanvas");
     const hint = document.getElementById("hint");
@@ -473,6 +492,7 @@
       grounded: true,
       yaw: 0,
       pitch: 0.38,
+      cameraDistance: 6.5,
       pointerLocked: false
     };
 
@@ -569,6 +589,7 @@
       renderer.domElement.addEventListener("pointermove", handlePointerMove);
       renderer.domElement.addEventListener("pointerup", handlePointerUp);
       renderer.domElement.addEventListener("pointercancel", handlePointerUp);
+      renderer.domElement.addEventListener("wheel", handleWheel, { passive: false });
       renderer.domElement.addEventListener("contextmenu", (event) => event.preventDefault());
     }
 
@@ -616,16 +637,25 @@
       addStaticBox("coffee-table", [15, 0.42, 7.2], [3.6, 0.45, 1.5], wood);
       addStaticBox("tv-stand", [20, 0.7, 3], [1.3, 1.4, 5], darkWood);
       addStaticBox("bookshelf", [20.1, 1.7, -8], [1.4, 3.4, 5], darkWood);
+      addStaticBox("low-hide-cabinet", [9.5, 0.8, -15], [4.5, 1.6, 1.4], darkWood);
+      addStaticBox("toy-box", [3.5, 0.45, -15], [2.6, 0.9, 1.5], new THREE.MeshStandardMaterial({ color: 0xe0a847, roughness: 0.84 }));
+      addStaticBox("laundry-basket", [-2, 0.55, 15.5], [1.5, 1.1, 1.5], new THREE.MeshStandardMaterial({ color: 0xbcc2bb, roughness: 0.9 }));
+      addStaticBox("shoe-rack", [-8, 0.55, 15.7], [3.6, 1.1, 1.2], darkWood);
+      addStaticBox("bath-tub", [-18, 0.72, 9.5], [4.5, 1.45, 2.2], white);
+      addStaticBox("bath-inner", [-18, 1.5, 9.5], [3.5, 0.25, 1.3], new THREE.MeshStandardMaterial({ color: 0x9fd7ea, roughness: 0.35 }), false);
       addStaticBox("plant-pot", [19, 0.45, -15], [1, 0.9, 1], new THREE.MeshStandardMaterial({ color: 0x8a5640, roughness: 0.8 }));
       addStaticBox("plant-top", [19, 1.55, -15], [1.6, 1.6, 1.6], new THREE.MeshStandardMaterial({ color: 0x2f8f5b, roughness: 0.9 }), false);
       addRug(14, 7.4, 7.5, 4.8, 0x456f7f);
       addRug(-14, -9.5, 6.2, 4.4, 0x8b6f4e);
+      addRug(-3, 14, 10, 3.2, 0x7b8f70);
       addLamp(10, 12.8);
       addLamp(-6, 13.4);
+      addLamp(-19, 5.5);
       addWindow(-22.72, -11, Math.PI / 2);
       addWindow(22.72, 9, -Math.PI / 2);
       addWallPicture(-14, -17.72);
       addWallPicture(5, -17.72);
+      addWallPicture(22.72, -3);
     }
 
     function addStaticBox(name, position, scale, material, collides = true) {
@@ -989,6 +1019,15 @@
       localState.pitch = THREE.MathUtils.clamp(localState.pitch + event.movementY * 0.002, 0.08, 0.92);
     }
 
+    function handleWheel(event) {
+      if (!scene || localState.isCaught) {
+        return;
+      }
+
+      event.preventDefault();
+      localState.cameraDistance = THREE.MathUtils.clamp(localState.cameraDistance + event.deltaY * 0.006, 3.2, 11);
+    }
+
     function handleCanvasClick(event) {
       if (!localState.paintMode && !localState.isCaught && !localState.pointerLocked) {
         renderer.domElement.requestPointerLock();
@@ -1093,7 +1132,7 @@
       }
 
       const playerFocus = new THREE.Vector3(localPlayer.position.x, localPlayer.position.y + 0.9 * localState.scale, localPlayer.position.z);
-      const distance = localState.paintMode ? 4.4 : 6.5;
+      const distance = localState.paintMode ? Math.min(localState.cameraDistance, 5.8) : localState.cameraDistance;
       const height = localState.paintMode ? 1.65 : 2.4;
       const horizontal = Math.cos(localState.pitch) * distance;
       const cameraTarget = new THREE.Vector3(
@@ -1189,7 +1228,7 @@
       const uv = hits[0].uv;
       const x = uv.x * paintCanvas.width;
       const y = (1 - uv.y) * paintCanvas.height;
-      const radius = 8;
+      const radius = Number(brushSizeInput.value) || 12;
       const gradient = paintContext.createRadialGradient(x, y, 1, x, y, radius);
       gradient.addColorStop(0, paintColorInput.value);
       gradient.addColorStop(1, "rgba(255,255,255,0)");
