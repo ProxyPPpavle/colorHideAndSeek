@@ -958,7 +958,7 @@
         syncPlayers(room.players || []);
       }
 
-      localState.canMove = room.status !== "revealing" && !localState.isCaught;
+      localState.canMove = !localState.isCaught && !(localState.role === "seeker" && (room.status === "revealing" || localState.isBlind));
       updateHud();
     }
 
@@ -975,7 +975,7 @@
       const statusPrefix = localState.roomStatus === "revealing" ? "REVEAL " : "";
       roleLabel.textContent = `${statusPrefix}${localState.isCaught ? "SPECTATOR" : localState.role.toUpperCase()}`;
       startGameButton.classList.toggle("is-hidden", localState.hostId !== localState.playerId || localState.role !== "lobby");
-      roleOverlay.classList.toggle("is-visible", localState.roomStatus === "revealing");
+      roleOverlay.classList.toggle("is-visible", localState.roomStatus === "revealing" && localState.revealRemainingMs > 2500);
       blindOverlay.classList.toggle("is-visible", localState.isBlind && localState.role === "seeker" && localState.roomStatus === "playing");
       blindTimeLabel.textContent = Math.ceil(localState.blindRemainingMs / 1000);
       blindLabel.textContent = localState.isBlind ? `Blind ${Math.ceil(localState.blindRemainingMs / 1000)}s` : "";
