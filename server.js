@@ -12,6 +12,14 @@ const TAG_DISTANCE = 2.25;
 const GAME_STATE_TICK_MS = 250;
 const rooms = new Map();
 const palette = ["#35c48f", "#4f8cff", "#ffcc4d", "#ff6b6b", "#b36bff", "#ff8f3d"];
+const spawnPoints = [
+  { x: 0, y: 1, z: 14 },
+  { x: -18, y: 1, z: 14 },
+  { x: 18, y: 1, z: 14 },
+  { x: -2, y: 1, z: -14 },
+  { x: 7, y: 1, z: -14 },
+  { x: 16, y: 1, z: -14 }
+];
 const publicFiles = new Map([
   ["/", { filePath: path.join(__dirname, "index.html"), contentType: "text/html; charset=utf-8" }],
   ["/index.html", { filePath: path.join(__dirname, "index.html"), contentType: "text/html; charset=utf-8" }]
@@ -71,10 +79,12 @@ function normalizeRoomCode(roomCode) {
 }
 
 function createPlayer(socketId, room) {
+  const spawn = spawnPoints[room.players.size % spawnPoints.length];
+
   return {
     id: socketId,
     color: palette[room.players.size % palette.length],
-    position: { x: 0, y: 1, z: 0 },
+    position: { ...spawn },
     rotation: { x: 0, y: 0, z: 0 },
     role: "lobby",
     scale: 1,

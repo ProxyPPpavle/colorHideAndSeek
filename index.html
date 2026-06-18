@@ -275,19 +275,27 @@
     .blind {
       position: fixed;
       inset: 0;
-      z-index: 22;
+      z-index: 40;
       display: none;
       place-items: center;
-      background: rgba(0, 0, 0, 0.92);
+      background: #000000;
       color: var(--text);
       text-align: center;
       pointer-events: none;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
     }
 
     .blind.is-visible {
       display: grid;
+    }
+
+    .blind strong {
+      display: block;
+      margin-top: 12px;
+      color: var(--warning);
+      font-size: 56px;
+      line-height: 1;
     }
 
     .paint-tools {
@@ -383,7 +391,9 @@
   </div>
 
   <div id="crosshair" class="crosshair"></div>
-  <div id="blindOverlay" class="blind">Blind time: <span id="blindTimeLabel">30</span>s</div>
+  <div id="blindOverlay" class="blind">
+    <div>Seeker blind time<strong><span id="blindTimeLabel">30</span>s</strong></div>
+  </div>
 
   <div id="roleOverlay" class="center-overlay">
     <div class="role-card">
@@ -456,6 +466,7 @@
       paintDataUrl: null,
       lastSentPaintDataUrl: null,
       localPaintDirty: false,
+      hasServerSpawn: false,
       lastPaintSentAt: 0,
       velocityY: 0,
       grounded: true,
@@ -519,7 +530,7 @@
       }
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x151a1e);
+      scene.background = new THREE.Color(0xdbe8f2);
 
       camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -529,10 +540,10 @@
       renderer.shadowMap.enabled = true;
       document.body.appendChild(renderer.domElement);
 
-      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x596875, 1.45);
+      const ambientLight = new THREE.HemisphereLight(0xffffff, 0xa7b6c2, 2.25);
       scene.add(ambientLight);
 
-      const sunLight = new THREE.DirectionalLight(0xffffff, 2.25);
+      const sunLight = new THREE.DirectionalLight(0xffffff, 2.85);
       sunLight.position.set(8, 13, 6);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.set(1024, 1024);
@@ -542,7 +553,7 @@
       setupPaintCanvas("#35c48f");
 
       localPlayer = createPlayerMesh("#35c48f", true);
-      localPlayer.position.set(0, 1, 10);
+      localPlayer.position.set(0, 1, 14);
       scene.add(localPlayer);
       updateCamera(1);
 
@@ -562,19 +573,19 @@
     function buildHouseMap() {
       const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(46, 36),
-        new THREE.MeshStandardMaterial({ color: 0x33444a, roughness: 0.86 })
+        new THREE.MeshStandardMaterial({ color: 0x6f8278, roughness: 0.82 })
       );
       floor.rotation.x = -Math.PI / 2;
       floor.receiveShadow = true;
       scene.add(floor);
 
-      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x9aa192, roughness: 0.8 });
-      const wood = new THREE.MeshStandardMaterial({ color: 0x6b4b34, roughness: 0.72 });
-      const darkWood = new THREE.MeshStandardMaterial({ color: 0x453628, roughness: 0.76 });
-      const fabric = new THREE.MeshStandardMaterial({ color: 0x6f4354, roughness: 0.84 });
-      const blue = new THREE.MeshStandardMaterial({ color: 0x486f88, roughness: 0.7 });
-      const white = new THREE.MeshStandardMaterial({ color: 0xc8d0c8, roughness: 0.68 });
-      const metal = new THREE.MeshStandardMaterial({ color: 0x7f8a90, roughness: 0.54, metalness: 0.12 });
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xd3d1c0, roughness: 0.78 });
+      const wood = new THREE.MeshStandardMaterial({ color: 0x9a6a42, roughness: 0.72 });
+      const darkWood = new THREE.MeshStandardMaterial({ color: 0x6e5139, roughness: 0.76 });
+      const fabric = new THREE.MeshStandardMaterial({ color: 0x9a586b, roughness: 0.84 });
+      const blue = new THREE.MeshStandardMaterial({ color: 0x5f93ae, roughness: 0.7 });
+      const white = new THREE.MeshStandardMaterial({ color: 0xe0e3d8, roughness: 0.68 });
+      const metal = new THREE.MeshStandardMaterial({ color: 0xa6b0b6, roughness: 0.54, metalness: 0.12 });
 
       addStaticBox("back-wall", [0, 2, -18], [46, 4, 0.55], wallMaterial);
       addStaticBox("front-wall-left", [-14, 2, 18], [18, 4, 0.55], wallMaterial);
@@ -751,6 +762,12 @@
           localState.scale = player.scale || 1;
           localState.isBlind = Boolean(player.isBlind);
           localState.isCaught = Boolean(player.isCaught);
+
+          if (!localState.hasServerSpawn && player.position && localPlayer) {
+            localPlayer.position.set(player.position.x || 0, player.position.y || getPlayerGroundY(), player.position.z || 14);
+            localState.hasServerSpawn = true;
+          }
+
           setLocalPlayerTexture(player);
           applyLocalScale();
           continue;
